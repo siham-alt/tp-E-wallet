@@ -9,7 +9,7 @@ const database={
         currency:"MAD",
         cards:[
             {numcards:"124847", type:"visa",balance:14712,expiry:"14-08-27",vcc:"147"},
-            {numcards:"124478", type:"mastercard",balance:1470,expiry:"14-08-28",vcc:"257"},
+            {numcards:"124478", type:"mastercard",balance:1470,expiry:"14-08-23",vcc:"257"},
         ],
         transactions:[
              {id:"1", type:"credit",amount:140,date:"14-08-25", from:"Ahmed" , to:"124847"},
@@ -27,7 +27,7 @@ const database={
         currency:"MAD",
         cards:[
             {numcards:"877", type:"visa",balance:1000,expiry:"14-08-27",vcc:"33"},
-            {numcards:"2934", type:"mastercard",balance:200,expiry:"14-08-23",vcc:"247"},
+            {numcards:"2934", type:"mastercard",balance:200,expiry:"14-08-28",vcc:"247"},
         ],
         transactions:[
              {id:"1", type:"credit",amount:140,date:"14-08-25", from:"Ahmed" , to:"124847"},

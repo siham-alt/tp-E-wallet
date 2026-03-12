@@ -28,13 +28,12 @@ document.getElementById('monthlyExpenses').textContent=sumdebits;
 
 
 const today = new Date();
-const activeCardsCount = user.wallet.cards.filter(card => {
+const activeCards = user.wallet.cards.filter(card => {
     const [day, month, year] = card.expiry.split('-');
     const expiryDate = new Date(`20${year}`, month - 1, day); 
     return expiryDate >= today; 
-}).length;
-document.getElementById('activeCards').textContent = activeCardsCount;
-
+});
+document.getElementById('activeCards').textContent = activeCards.length;
 
 
 const beneficiarySelect = document.getElementById("beneficiary");
@@ -58,7 +57,7 @@ otherUsers.forEach(u => {
 
 sourceCardSelect.innerHTML = "";
 
-user.wallet.cards.forEach(c => {
+activeCards.forEach(c => {
     const option = document.createElement("option");
     option.value = c.numcards; 
     option.textContent = c.numcards+ "(Solde:" +c.balance+ " "+ user.wallet.currency +")";
