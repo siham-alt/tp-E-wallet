@@ -30,8 +30,8 @@ document.getElementById('monthlyExpenses').textContent=sumdebits;
 const today = new Date();
 const activeCardsCount = user.wallet.cards.filter(card => {
     const [day, month, year] = card.expiry.split('-');
-    const expiryDate = new Date(`20${year}`, month - 1, day); // JS: mois 0-indexé
-    return expiryDate >= today; // si la date n'est pas passée => active
+    const expiryDate = new Date(`20${year}`, month - 1, day); 
+    return expiryDate >= today; 
 }).length;
 document.getElementById('activeCards').textContent = activeCardsCount;
 
