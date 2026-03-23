@@ -391,10 +391,6 @@ function transfer(expediteur, numcompte, amount) {
 
 
 
-
-
-
-
 function handleTransfer(e) {
  e.preventDefault();
   const beneficiaryId = document.getElementById("beneficiary").value;
