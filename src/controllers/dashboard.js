@@ -377,15 +377,34 @@ checkUser(numcompte).then(checkSolde())
 } 
 
 */
-
 function transfer(expediteur, numcompte, amount) {
 
     checkUser(numcompte)
-        .then(d => (console.log("Destinataire trouve :", d.name), d))
-        .then(d => checkSolde(expediteur, amount).then(() => d))
-        .then(d => updateSolde(expediteur, d, amount).then(() => d))
-        .then(d => addtransactions(expediteur, d, amount))
-        .then(msg => console.log(msg))
+        .then(d => (console.log("Étape 1: Destinataire trouvé -", d.name), d))
+
+        .then(d => 
+            checkSolde(expediteur, amount)
+                .then(msg => {
+                    console.log(msg); 
+                    return d;
+                })
+        )
+
+        .then(d => 
+            updateSolde(expediteur, d, amount)
+                .then(msg => {
+                    console.log(msg); 
+                    return d;
+                })
+        )
+
+        .then(d => 
+            addtransactions(expediteur, d, amount)
+                .then(msg => {
+                    console.log(msg); 
+                })
+        )
+
         .catch(err => console.log("Erreur :", err));
 }
 
