@@ -1,4 +1,4 @@
-import {getbeneficiaries ,finduserbyaccount,findbeneficiarieByid} from "../model/database.js";
+import {getbeneficiaries ,finduserbyaccount,findbeneficiarieByid,getcards,findcards} from "../model/database.js";
 const user = JSON.parse(sessionStorage.getItem("currentUser"));
 // DOM elements
 const greetingName = document.getElementById("greetingName");
@@ -16,6 +16,15 @@ const beneficiarySelect = document.getElementById("beneficiary");
 const sourceCard = document.getElementById("sourceCard");
 const submitTransferBtn=document.getElementById("submitTransferBtn");
 
+
+const RechargerBtn = document.getElementById("quickTopup");
+const submitRechargeBtn=document.getElementById("submitRechargerBtn");
+const RechargeSection = document.getElementById("RechargerPopup");
+const closeRechargeBtn = document.getElementById("closeRechargeBtn");
+const cancelRechargeBtn = document.getElementById("cancelRechargeBtn");
+const moyenpaiment = document.getElementById("moyenpaiment");
+
+
 // Guard
 if (!user) {
   alert("User not authenticated");
@@ -28,6 +37,11 @@ if (!user) {
   cancelTransferBtn.addEventListener("click", closeTransfer);
   submitTransferBtn.addEventListener("click",handleTransfer)
 
+
+  RechargerBtn.addEventListener("click", handleRechargesection);
+  closeRechargerBtn.addEventListener("click", closeRecharger);
+  cancelRechargeBtn.addEventListener("click", closeRecharger);
+  submitRechargeBtn.addEventListener("click",handleRecharger);
 
 // Retrieve dashboard data
 const getDashboardData = () => {
@@ -68,6 +82,8 @@ user.wallet.transactions.forEach(transaction => {
     <div>${transaction.date}</div>
     <div>${transaction.amount} MAD</div>
     <div>${transaction.type}</div>
+    <div>${transaction.status}</div>
+
   `;
   transactionsList.appendChild(transactionItem);
 });
@@ -86,6 +102,19 @@ function handleTransfersection() {
   document.body.classList.add("popup-open");
 }
 
+
+
+ function handleRechargesection(){
+    RechargeSection.classList.add("active");
+  document.body.classList.add("popup-open");
+ }
+
+function closeRecharger() {
+  RechargeSection.classList.remove("active");
+  document.body.classList.remove("popup-open");
+}
+
+
 // Beneficiaries
 const beneficiaries = getbeneficiaries(user.id);
 
@@ -97,6 +126,7 @@ function renderBeneficiaries() {
     beneficiarySelect.appendChild(option);
   });
 }
+
 renderBeneficiaries();
 function renderCards() {
   user.wallet.cards.forEach((card) => {
@@ -108,6 +138,15 @@ function renderCards() {
 }
 
 renderCards();
+function renderCard() {
+  user.wallet.cards.forEach((card) => {
+    const option = document.createElement("option");
+    option.value = card.numcards;
+    option.textContent = card.type+"****"+card.numcards;
+    moyenpaiment.appendChild(option);
+  });
+}
+renderCard();
 
 //###################################  Transfer  #####################################################//
 
@@ -401,35 +440,150 @@ function transfer(expediteur, numcompte, amount) {
         .then(d => 
             addtransactions(expediteur, d, amount)
                 .then(msg => {
-                    console.log(msg); 
+                console.log(msg); 
+                renderDashboard();
                 })
+            
         )
-
+  
         .catch(err => console.log("Erreur :", err));
 }
 
 
+
+
+function checkMontant(montant){
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+
+            if (isNaN(montant) || montant < 10 || montant > 5000) {
+                reject("montant n'est pas valide");
+            } else {
+                resolve("montant valide");
+            }
+
+        }, 2000);
+    });
+}
+
+
+function checkMoyen(){
+return new Promise((resolve,reject)=>{
+    setTimeout(()=>{
+   const moyens =getcards(user.id);
+   if(moyens){
+resolve("utilisateur possède au moins un moyen de paiement");
+   }else{
+    reject("utilisateur ne possède aucune moyen de paiemnt ");
+   }
+    },2000);
+})
+}
+
+
+function checkvalidite(moyenpaiment){
+    return new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+const card=findcards(moyenpaiment,user.id);
+if(card){
+   const expiryDate = new Date(card.expiry); 
+      const today = new Date();
+      today.setDate(1); today.setHours(0, 0, 0, 0);
+      if(today>expiryDate){
+         reject("carte expiré");
+      }else{
+        resolve("trouve");
+      }     
+}else{
+    reject("carte non trouvé!");
+}
+        },2000);
+    })
+
+}
+
+function updatewallet(amount) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            user.wallet.balance += amount;
+            resolve("update balance done");
+        }, 200);
+    });
+}
+
+function addRecharge( amount, status) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+
+            const recharge = {
+                id: Date.now(),
+                type: "recharge",
+                amount: amount,
+                date: new Date().toLocaleString(),
+                from: user.name,
+                status:status
+            };
+            user.wallet.transactions.push(recharge);
+
+            resolve("recharge added successfully");
+           
+    
+    
+
+        }, 2000);
+    });
+}
+
+function recharger(moyenpaiment, amount) {
+
+    checkMontant(amount)
+        .then(msg => {
+            console.log(msg);
+            return checkMoyen();
+        })
+        .then(msg => {
+            console.log(msg);
+            return checkvalidite(moyenpaiment);
+        })
+        .then(msg => {
+            console.log(msg);
+            return updatewallet(amount);
+        })
+        .then(msg => {
+            console.log(msg);
+            return addRecharge(amount, "succes");
+        })
+        .then(msg => {
+            console.log(msg);
+            renderDashboard();
+        })
+        .catch(err => {
+            console.log("Erreur :", err);
+
+            return addRecharge(amount, "echoué") 
+                .then(msg => {
+                    console.log(msg);
+                    renderDashboard();
+                });
+        });
+}
 
 function handleTransfer(e) {
  e.preventDefault();
   const beneficiaryId = document.getElementById("beneficiary").value;
   const beneficiaryAccount=findbeneficiarieByid(user.id,beneficiaryId).account;
   const sourceCard = document.getElementById("sourceCard").value;
-
   const amount = Number(document.getElementById("amount").value);
 
 transfer(user, beneficiaryAccount, amount);
-
 } 
 
-
-
-
-
-
-
-
-
+function handleRecharger(e){
+     e.preventDefault();
+    const moyenpaiment = document.getElementById("moyenpaiment").value;
+    const montant = Number(document.getElementById("montant").value);
+    recharger(moyenpaiment,montant);
+}
 
 /*
     function func1(number,callback){
