@@ -415,7 +415,10 @@ checkUser(numcompte).then(checkSolde())
     })
 } 
 
-*/
+
+
+
+
 function transfer(expediteur, numcompte, amount) {
 
     checkUser(numcompte)
@@ -448,9 +451,28 @@ function transfer(expediteur, numcompte, amount) {
   
         .catch(err => console.log("Erreur :", err));
 }
+*/
 
+async function transfer(expediteur, numcompte, amount) {
+  try {
+    const destinataire = await checkUser(numcompte);
+    console.log("Étape 1: Destinataire trouvé -", destinataire.name);
 
+    const soldeMsg = await checkSolde(expediteur, amount);
+    console.log(soldeMsg);
 
+    const updateMsg = await updateSolde(expediteur, destinataire, amount);
+    console.log(updateMsg);
+
+    const transactionMsg = await addtransactions(expediteur, destinataire, amount);
+    console.log(transactionMsg);
+
+    renderDashboard();
+
+  } catch (err) {
+    console.log("Erreur :", err);
+  }
+}
 
 function checkMontant(montant){
     return new Promise((resolve, reject) => {
@@ -533,7 +555,7 @@ function addRecharge( amount, status) {
         }, 2000);
     });
 }
-
+/*
 function recharger(moyenpaiment, amount) {
 
     checkMontant(amount)
@@ -566,6 +588,36 @@ function recharger(moyenpaiment, amount) {
                     renderDashboard();
                 });
         });
+}
+
+*/
+async function recharger(moyenpaiment, amount) {
+  try {
+    const m1 = await checkMontant(amount);
+    console.log(m1);
+
+    const m2 = await checkMoyen();
+    console.log(m2);
+
+    const m3 = await checkvalidite(moyenpaiment);
+    console.log(m3);
+
+    const m4 = await updatewallet(amount);
+    console.log(m4);
+
+    const m5 = await addRecharge(amount, "succes");
+    console.log(m5);
+
+    renderDashboard();
+
+  } catch (err) {
+    console.log("Erreur :", err);
+
+    // même en cas d'erreur → transaction enregistrée
+    const msg = await addRecharge(amount, "echoué");
+    console.log(msg);
+    renderDashboard();
+  }
 }
 
 function handleTransfer(e) {
